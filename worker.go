@@ -59,6 +59,9 @@ func buildRequest(requests []preloadedRequest, totalPremadeRequests int) (*fasth
 	req.SetRequestURI(currentReq.url)
 	req.Header.SetMethod(currentReq.method)
 	req.SetBodyString(currentReq.body)
+	for i := 0; i < len(currentReq.headers); i++ {
+		req.Header.Add(currentReq.headers[i][0], currentReq.headers[i][1])
+	}
 	return req, resp
 }
 

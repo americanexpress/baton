@@ -39,19 +39,19 @@ requests should be sent. Baton will wait for all the responses to be received be
 
 ##### Requests file
 
-When specifying a file to load requests from (`-z filename`), the file should have the following format:
+When specifying a file to load requests from (`-z filename`), the file should be of CSV format ([RFC-4180](https://tools.ietf.org/html/rfc4180))
 ```
-Method>Uri>Body(Optional)
+Method,URL,Body,Headers
 ...
 ```
 
+The headers column can contain multiple headers separated by newline, however make sure the whole column is quoted as per the RFC.
+
 For example:
 ```
-POST>http://localhost:8080>Data 1
-POST>http://localhost:8080>Data 2
-POST>http://localhost:8080>Data 3
-POST>http://localhost:8080>Data 4
-GET>http://localhost:8080>
+POST,http://localhost:8888,body,"Accept: application/xml
+Content-type: Secret"
+GET,http://localhost:8888,,
 ```
 
 ##### Example Output:

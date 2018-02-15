@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"crypto/tls"
 	"flag"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -21,7 +19,7 @@ var (
 	method           = flag.String("m", "GET", "HTTP Method (GET,POST,PUT,DELETE)")
 	numberOfRequests = flag.Int("r", 1, "Number of requests (use instead of -t)")
 	requestsFromFile = flag.String("z", "", "Read requests from a file")
-	supressOutput    = flag.Bool("o", false, "Supress output, no results will be printed to stdout")
+	suppressOutput   = flag.Bool("o", false, "Suppress output, no results will be printed to stdout")
 	url              = flag.String("u", "", "URL to run against")
 	wait             = flag.Int("w", 0, "Number of seconds to wait before running test")
 )
@@ -36,7 +34,7 @@ type Configuration struct {
 	method           string
 	numberOfRequests int
 	requestsFromFile string
-	supressOutput    bool
+	suppressOutput   bool
 	url              string
 	wait             int
 }
@@ -48,9 +46,14 @@ type Baton struct {
 }
 
 type preloadedRequest struct {
-	method string
-	url    string
-	body   string
+	// The HTTP method used to send the request
+	method  string
+	// The URL to send the request at
+	url     string
+	// The body of the request (if appropriate method is selected)
+	body    string
+	// Array of two-element key/value pairs of header and value
+	headers	[][]string
 }
 
 func main() {
@@ -65,7 +68,7 @@ func main() {
 		*method,
 		*numberOfRequests,
 		*requestsFromFile,
-		*supressOutput,
+		*suppressOutput,
 		*url,
 		*wait,
 	}
@@ -76,30 +79,11 @@ func main() {
 	baton.result.printResults()
 }
 
-func preloadRequestsFromFile(filename string) ([]preloadedRequest, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	var requests []preloadedRequest
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		parts := strings.SplitN(line, ">", 3)
-		method := parts[0]
-		url := parts[1]
-		body := parts[2]
-		requests = append(requests, preloadedRequest{method, url, body})
-	}
-	return requests, scanner.Err()
-}
-
 func (baton *Baton) run() {
 
 	logWriter := &logWriter{true}
 
-	if baton.configuration.supressOutput {
+	if baton.configuration.suppressOutput {
 		logWriter.Disable()
 	}
 
@@ -183,7 +167,8 @@ func (baton *Baton) run() {
 		if preloadedRequestsMode {
 			go worker.sendRequests(preloadedRequests)
 		} else {
-			go worker.sendRequest(preloadedRequest{baton.configuration.method, baton.configuration.url, baton.configuration.body})
+			request := preloadedRequest{baton.configuration.method, baton.configuration.url, baton.configuration.body, [][]string{}}
+			go worker.sendRequest(request)
 		}
 	}
 

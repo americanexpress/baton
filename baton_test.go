@@ -12,11 +12,12 @@ import (
 )
 
 type HTTPTestHandler struct {
-	noRequestsReceived uint32
-	lastBodyReceived   string
-	lastMethodReceived string
-	lastURIReceived    string
-	lastTimestamp      int64
+	noRequestsReceived  uint32
+	lastBodyReceived    string
+	lastMethodReceived  string
+	lastURIReceived     string
+	lastHeadersReceived fasthttp.RequestHeader
+	lastTimestamp       int64
 }
 
 func (h *HTTPTestHandler) HandleRequest(ctx *fasthttp.RequestCtx) {
@@ -25,6 +26,7 @@ func (h *HTTPTestHandler) HandleRequest(ctx *fasthttp.RequestCtx) {
 	h.lastBodyReceived = hex.EncodeToString(ctx.Request.Body())
 	h.lastMethodReceived = string(ctx.Request.Header.Method())
 	h.lastURIReceived = ctx.Request.URI().String()
+	h.lastHeadersReceived = ctx.Request.Header
 }
 
 func (h *HTTPTestHandler) reset() {
@@ -41,7 +43,7 @@ var port = "8888"
 
 func startServer() *HTTPTestHandler {
 	if !serverRunning {
-		internalHandlerRef = &HTTPTestHandler{0, "", "", "", 0}
+		internalHandlerRef = &HTTPTestHandler{0, "", "", "", fasthttp.RequestHeader{}, 0}
 		serverRunning = true
 		go func() {
 			err := fasthttp.ListenAndServe(":"+port, internalHandlerRef.HandleRequest)
@@ -171,7 +173,7 @@ func TestLoadPostFromTextFile(t *testing.T) {
 func TestPostRequestLoadedFromFile(t *testing.T) {
 	uri := "http://localhost:" + port
 	method := "POST"
-	fileContents := method + ">" + uri + ">" + "Data"
+	fileContents := method + "," + uri + "," + "Data"
 	fileInBytes := []byte(fileContents)
 
 	fileDir := "test-resources/requests-from-file.txt"
@@ -198,6 +200,36 @@ func TestPostRequestLoadedFromFile(t *testing.T) {
 	}
 }
 
+func TestThatHeadersAreSetWhenSendingFromFile(t *testing.T) {
+	uri := "http://localhost:" + port
+	method := "GET"
+	fileContents := method + "," + uri + "," + "" + "," +"\"Content-Type: Hello\r\nSecret: World\""
+	fileInBytes := []byte(fileContents)
+
+	fileDir := "test-resources/requests-from-file.txt"
+	if ioutil.WriteFile(fileDir, fileInBytes, 0644) != nil {
+		t.Errorf("Failed to write a required test case file. Check the directory permissions.")
+	}
+	defer os.Remove(fileDir)
+
+	config := defaultConfig()
+	config.requestsFromFile = fileDir
+	config.numberOfRequests = 1
+	testHandler := setupAndListen(config)
+
+	headerActual := hex.EncodeToString(testHandler.lastHeadersReceived.Peek("Content-Type"))
+	headerExpected := hex.EncodeToString([]byte("Hello"))
+	if headerExpected != headerActual {
+		t.Errorf("Header not found or improperly set, Expected %s, got %s", headerExpected, headerActual)
+	}
+
+	headerActual2 := hex.EncodeToString(testHandler.lastHeadersReceived.Peek("Secret"))
+	headerExpected2 := hex.EncodeToString([]byte("World"))
+	if headerExpected != headerActual {
+		t.Errorf("Header not found or improperly set, Expected %s, got %s", headerExpected2, headerActual2)
+	}
+}
+
 func TestThatTimeOptionRunsForCorrectAmountOfTime(t *testing.T) {
 	duration := 10
 	testHandler := startServer()
@@ -218,3 +250,4 @@ func TestThatTimeOptionRunsForCorrectAmountOfTime(t *testing.T) {
 		t.Errorf("Requests sent for longer/shorter than expected. Expected %d, got %d)", duration, diff)
 	}
 }
+
