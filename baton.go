@@ -102,7 +102,7 @@ func (baton *Baton) run() {
 		timedMode = true
 	}
 
-	if baton.configuration.concurrency == 0 || baton.configuration.numberOfRequests == 0 {
+	if baton.configuration.concurrency < 1 || baton.configuration.numberOfRequests == 0 {
 		log.Fatal("Invalid concurrency level or number of requests")
 	}
 
