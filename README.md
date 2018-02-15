@@ -41,7 +41,7 @@ requests should be sent. Baton will wait for all the responses to be received be
 
 When specifying a file to load requests from (`-z filename`), the file should be of CSV format ([RFC-4180](https://tools.ietf.org/html/rfc4180))
 ```
-<method>,<url>,[<body>],[<header> ...]
+<method>,<url>,[<body>],[<header>, ...]
 ...
 ```
 
