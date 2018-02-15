@@ -112,17 +112,12 @@ func (baton *Baton) run() {
 		client = &fasthttp.Client{TLSConfig: tlsConfig}
 	}
 
-	switch baton.configuration.method {
-	case "GET", "POST", "PUT", "DELETE":
-		if baton.configuration.dataFilePath != "" {
-			data, err := ioutil.ReadFile(baton.configuration.dataFilePath)
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-			baton.configuration.body = string(data)
+	if baton.configuration.dataFilePath != "" {
+		data, err := ioutil.ReadFile(baton.configuration.dataFilePath)
+		if err != nil {
+			log.Fatal(err.Error())
 		}
-	default:
-		log.Fatal("Invalid method specified")
+		baton.configuration.body = string(data)
 	}
 
 	if preloadedRequestsMode {
