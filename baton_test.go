@@ -203,7 +203,7 @@ func TestPostRequestLoadedFromFile(t *testing.T) {
 func TestThatHeadersAreSetWhenSendingFromFile(t *testing.T) {
 	uri := "http://localhost:" + port
 	method := "GET"
-	fileContents := method + "," + uri + "," + "" + "," +"Content-Type: Hello, Secret: World"
+	fileContents := method + "," + uri + "," + "" + "," + "Content-Type: Hello, Secret: World"
 	fileInBytes := []byte(fileContents)
 
 	fileDir := "test-resources/requests-from-file.txt"
@@ -250,4 +250,3 @@ func TestThatTimeOptionRunsForCorrectAmountOfTime(t *testing.T) {
 		t.Errorf("Requests sent for longer/shorter than expected. Expected %d, got %d)", duration, diff)
 	}
 }
-

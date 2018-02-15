@@ -1,12 +1,12 @@
 package main
 
 import (
-	"os"
-	"encoding/csv"
 	"bufio"
-	"io"
-	"strings"
+	"encoding/csv"
 	"errors"
+	"io"
+	"os"
+	"strings"
 )
 
 func extractHeaders(rawHeaders string) []string {
