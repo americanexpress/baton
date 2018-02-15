@@ -16,7 +16,7 @@ func newTimedWorker(requests <-chan bool, results chan<- HTTPResult, done chan<-
 	return &timedWorker{worker, durationToRun}
 }
 
-func (worker timedWorker) sendRequest(request preloadedRequest) {
+func (worker timedWorker) sendRequest(request preLoadedRequest) {
 	req := fasthttp.AcquireRequest()
 	req.SetRequestURI(request.url)
 	req.Header.SetMethod(request.method)
@@ -35,7 +35,7 @@ func (worker timedWorker) sendRequest(request preloadedRequest) {
 	worker.finish()
 }
 
-func (worker timedWorker) sendRequests(requests []preloadedRequest) {
+func (worker timedWorker) sendRequests(requests []preLoadedRequest) {
 	totalPremadeRequests := len(requests)
 	startTime := time.Now()
 

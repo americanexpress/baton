@@ -14,8 +14,8 @@ type worker struct {
 }
 
 type workable interface {
-	sendRequests(requests []preloadedRequest)
-	sendRequest(request preloadedRequest)
+	sendRequests(requests []preLoadedRequest)
+	sendRequest(request preLoadedRequest)
 	setCustomClient(client *fasthttp.Client)
 }
 
@@ -50,8 +50,8 @@ func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Respo
 	return false
 }
 
-func buildRequest(requests []preloadedRequest, totalPremadeRequests int) (*fasthttp.Request, *fasthttp.Response) {
-	var currentReq preloadedRequest
+func buildRequest(requests []preLoadedRequest, totalPremadeRequests int) (*fasthttp.Request, *fasthttp.Response) {
+	var currentReq preLoadedRequest
 
 	currentReq = requests[rand.Intn(totalPremadeRequests)]
 	req := fasthttp.AcquireRequest()

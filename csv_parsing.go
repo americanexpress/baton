@@ -17,7 +17,7 @@ func extractHeaders(rawHeaders string) []string {
 	return nil
 }
 
-func preloadRequestsFromFile(filename string) ([]preloadedRequest, error) {
+func preLoadRequestsFromFile(filename string) ([]preLoadedRequest, error) {
 	file, err := os.Open(filename)
 
 	if err != nil {
@@ -25,7 +25,7 @@ func preloadRequestsFromFile(filename string) ([]preloadedRequest, error) {
 	}
 
 	reader := csv.NewReader(bufio.NewReader(file))
-	var requests []preloadedRequest
+	var requests []preLoadedRequest
 
 	for {
 		record, err := reader.Read()
@@ -64,7 +64,7 @@ func preloadRequestsFromFile(filename string) ([]preloadedRequest, error) {
 			}
 		}
 
-		requests = append(requests, preloadedRequest{method, url, body, headers})
+		requests = append(requests, preLoadedRequest{method, url, body, headers})
 	}
 
 	return requests, nil

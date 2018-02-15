@@ -14,7 +14,7 @@ func newCountWorker(requests <-chan bool, results chan<- HTTPResult, done chan<-
 	return &countWorker{worker}
 }
 
-func (worker *countWorker) sendRequest(request preloadedRequest) {
+func (worker *countWorker) sendRequest(request preLoadedRequest) {
 	req := fasthttp.AcquireRequest()
 	req.SetRequestURI(request.url)
 	req.Header.SetMethod(request.method)
@@ -27,7 +27,7 @@ func (worker *countWorker) sendRequest(request preloadedRequest) {
 
 	worker.finish()
 }
-func (worker *countWorker) sendRequests(requests []preloadedRequest) {
+func (worker *countWorker) sendRequests(requests []preLoadedRequest) {
 	totalPremadeRequests := len(requests)
 
 	for range worker.requests {
