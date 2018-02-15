@@ -6,7 +6,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"log"
-	"os"
 	"time"
 )
 
@@ -46,14 +45,10 @@ type Baton struct {
 }
 
 type preloadedRequest struct {
-	// The HTTP method used to send the request
-	method  string
-	// The URL to send the request at
-	url     string
-	// The body of the request (if appropriate method is selected)
-	body    string
-	// Array of two-element key/value pairs of header and value
-	headers	[][]string
+	method  string     // The HTTP method used to send the request
+	url     string     // The URL to send the request at
+	body    string     // The body of the request (if appropriate method is selected)
+	headers [][]string // Array of two-element key/value pairs of header and value
 }
 
 func main() {
@@ -99,10 +94,8 @@ func (baton *Baton) run() {
 		preloadedRequests, err = preloadRequestsFromFile(baton.configuration.requestsFromFile)
 		preloadedRequestsMode = true
 		if err != nil {
-			validationError("Failed to parse requests from file: " + baton.configuration.requestsFromFile)
+			log.Fatal("Failed to parse requests from file: " + baton.configuration.requestsFromFile)
 		}
-	} else if baton.configuration.url == "" {
-		validationError("")
 	}
 
 	if baton.configuration.duration != 0 {
@@ -110,7 +103,7 @@ func (baton *Baton) run() {
 	}
 
 	if baton.configuration.concurrency == 0 || baton.configuration.numberOfRequests == 0 {
-		validationError("Invalid concurrency level or number of requests")
+		log.Fatal("Invalid concurrency level or number of requests")
 	}
 
 	client := &fasthttp.Client{}
@@ -124,12 +117,12 @@ func (baton *Baton) run() {
 		if baton.configuration.dataFilePath != "" {
 			data, err := ioutil.ReadFile(baton.configuration.dataFilePath)
 			if err != nil {
-				validationError(err.Error())
+				log.Fatal(err.Error())
 			}
 			baton.configuration.body = string(data)
 		}
 	default:
-		validationError("Invalid method specified")
+		log.Fatal("Invalid method specified")
 	}
 
 	if preloadedRequestsMode {
@@ -194,12 +187,4 @@ func (baton *Baton) run() {
 	baton.result.totalRequests = baton.result.httpResult.total()
 
 	baton.result.requestsPerSecond = int(float64(baton.result.totalRequests)/baton.result.timeTaken.Seconds() + 0.5)
-}
-
-func validationError(msg string) {
-	if msg != "" {
-		log.Printf("\n%s\n\n", msg)
-	}
-	flag.PrintDefaults()
-	os.Exit(2)
 }
