@@ -30,7 +30,7 @@ Baton currently supports the following options:
 
 A basic example which will use 10 workers to send 200,000 requests is as follows: 
 
-```
+```bash
 $ baton -u http://localhost:8080/test -c 10 -r 200000
 ```
 
@@ -41,17 +41,17 @@ requests should be sent. Baton will wait for all the responses to be received be
 
 When specifying a file to load requests from (`-z filename`), the file should be of CSV format ([RFC-4180](https://tools.ietf.org/html/rfc4180))
 ```
-Method,URL,Body,Headers
+<method>,<url>,[<body>],[<header> ...]
 ...
 ```
 
-The headers column can contain multiple headers separated by newline, however make sure the whole column is quoted as per the RFC.
+You can have one or more headers at the end separated by `,`
 
 For example:
+
 ```
-POST,http://localhost:8888,body,"Accept: application/xml
-Content-type: Secret"
-GET,http://localhost:8888,,
+POST,http://localhost:8888,body,Accept: application/xml,Content-type: Secret
+GET,http://localhost:8888,,,
 ```
 
 ##### Example Output:
@@ -79,12 +79,12 @@ Number of 5xx responses:                            0
 ### Running Baton in docker
 
 To build the image run:
-```
+```Bash
 $ docker build -t baton .
 ```
 
 Alternatively, update the docker-compose.yml file to meet your needs and run:
-```
+```bash
 $ docker-compose up
 ```
 
@@ -104,14 +104,12 @@ Any Contributor to any Open Source Project managed by the American Express Open
 Source Community must accept and sign an Agreement indicating agreement to the
 terms below. Except for the rights granted in this Agreement to American Express
 and to recipients of software distributed by American Express, You reserve all
-right, title, and interest, if any, in and to Your Contributions. Please [fill
-out the Agreement](https://cla-assistant.io/americanexpress/).
+right, title, and interest, if any, in and to Your Contributions. Please [fill out the Agreement](https://cla-assistant.io/americanexpress/).
 
 Please feel free to open pull requests and see [CONTRIBUTING.md](./CONTRIBUTING.md) for commit formatting details.
 
 ## License
-Any contributions made under this project will be governed by the [Apache License
-2.0](./LICENSE.md).
+Any contributions made under this project will be governed by the [Apache License 2.0](./LICENSE.md).
 
 ## Code of Conduct
 This project adheres to the [American Express Community Guidelines](./CODE_OF_CONDUCT.md).

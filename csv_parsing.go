@@ -6,22 +6,15 @@ import (
 	"bufio"
 	"io"
 	"strings"
-	"runtime"
 	"errors"
 )
 
-func extractHeaders(rawHeaders string) [][]string {
-	var headers [][]string
-	if rawHeaders != "" {
-		header := strings.Split(rawHeaders, "\n")
-		for i := 0; i < len(header); i++ {
-			headerParts := strings.Split(header[i], ":")
-			if len(headerParts) == 2 {
-				headers = append(headers, []string{headerParts[0], headerParts[1]})
-			}
-		}
+func extractHeaders(rawHeaders string) []string {
+	headerParts := strings.Split(rawHeaders, ":")
+	if len(headerParts) == 2 {
+		return []string{headerParts[0], headerParts[1]}
 	}
-	return headers
+	return nil
 }
 
 func preloadRequestsFromFile(filename string) ([]preloadedRequest, error) {
@@ -53,7 +46,7 @@ func preloadRequestsFromFile(filename string) ([]preloadedRequest, error) {
 			return nil, errors.New("invalid number of fields")
 		}
 
-		if noFields >= 2{
+		if noFields >= 2 {
 			method = record[0]
 			url = record[1]
 		}
@@ -63,7 +56,12 @@ func preloadRequestsFromFile(filename string) ([]preloadedRequest, error) {
 		}
 
 		if noFields >= 4 {
-			headers = extractHeaders(record[3])
+			for i := 3; i < noFields; i++ {
+				extractedHeaders := extractHeaders(record[i])
+				if extractedHeaders != nil {
+					headers = append(headers, extractedHeaders)
+				}
+			}
 		}
 
 		requests = append(requests, preloadedRequest{method, url, body, headers})
