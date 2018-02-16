@@ -1,0 +1,12 @@
+version: '3'
+services:
+  baton:
+    build: .
+    image: "baton"
+    command: "-u http://server -w 1 -r 10 -c 3"
+    links:
+      - server
+  server:
+    image: "nginx"
+    expose:
+      - "80"
