@@ -76,6 +76,16 @@ Number of 5xx responses:                            0
 * Dynamic generation of data based on a template
 * Testing REST endpoints with dynamically generated keys
 
+### Installing Baton
+
+Installation with Go is as easy as running `go get`.
+
+```sh
+$ go get -u github.com/americanexpress/baton
+```
+
+Binary releases are [available](https://github.com/americanexpress/baton/releases).
+
 ### Running Baton in docker
 
 To build the image run:
