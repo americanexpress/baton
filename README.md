@@ -2,6 +2,8 @@
 
 Baton is a load testing tool written in Go. It currently supports GET, POST, PUT, and DELETE requests. 
 
+[![Build Status](https://travis-ci.org/americanexpress/baton.svg?branch=master)](https://travis-ci.org/americanexpress/baton)
+
 ### Usage
 
 Baton currently supports the following options:
