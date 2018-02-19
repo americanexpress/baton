@@ -5,7 +5,6 @@ env:
   - "PATH=/home/travis/gopath/bin:$PATH"
 script:
   - gofmt -l ./
-  - go vet -v
   - go test -v
   - go build
   - go install
