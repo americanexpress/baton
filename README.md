@@ -75,6 +75,9 @@ GET,http://localhost:8888,,,
 Total requests:                               1254155
 Time taken to complete requests:        10.046739294s
 Requests per second:                           124832
+Max response time (ms):                           440
+Min response time (ms):                            55
+Avg response time (ms):                        156.70
 ===================== Breakdown =====================
 Number of connection errors:                        0
 Number of 1xx responses:                            0
@@ -89,6 +92,9 @@ Number of 5xx responses:                            0
 ## Features which are on the horizon...
 * Dynamic generation of data based on a template
 * Testing REST endpoints with dynamically generated keys
+
+## Caveats
+* The `min`,`max`,`avg` stats are only accurate when a request count is specified. When in timed mode only the first `100,000` requests are tracked
 
 ## Dependency Management
 [Dep](https://github.com/golang/dep) is currently being utilized as the dependency manager for Baton.
