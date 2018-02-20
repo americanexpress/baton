@@ -13,13 +13,16 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
- 
+
 package main
 
 import (
 	"github.com/valyala/fasthttp"
 	"math/rand"
+	"time"
 )
+
+const TimedBufferSize = 100000
 
 type worker struct {
 	httpResult  HTTPResult
@@ -27,6 +30,8 @@ type worker struct {
 	requests    <-chan bool
 	httpResults chan<- HTTPResult
 	done        chan<- bool
+	timings     chan int
+	isBuffered  bool
 }
 
 type workable interface {
@@ -40,15 +45,37 @@ func (worker *worker) setCustomClient(client *fasthttp.Client) {
 }
 
 func newWorker(requests <-chan bool, httpResults chan<- HTTPResult, done chan<- bool) *worker {
-	return &worker{HTTPResult{0, 0, 0, 0, 0, 0}, &fasthttp.Client{}, requests, httpResults, done}
-}
+	requestCount := len(requests)
+	isBuffered := false
 
+	// If this is running in timed mode we cannot predict the number of requests being
+	// sent, to allocate a large enough channel. As a compromise we fill in the
+	// buffered channel up to a fixed size and ignore the rest
+	if requestCount <= 1 {
+		requestCount = TimedBufferSize
+		isBuffered = true
+	}
+
+	timings := make(chan int, requestCount)
+	return &worker{*newHTTPResult(), &fasthttp.Client{}, requests, httpResults, done, timings, isBuffered}
+}
 func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Response) bool {
+	timeNow := time.Now().UnixNano()
 	if err := worker.client.Do(req, resp); err != nil {
 		worker.httpResult.connectionErrorCount++
 		return true
 	}
+	timeAfter := time.Now().UnixNano()
 
+	i := int((timeAfter - timeNow) / 1000)
+	select {
+		case worker.timings <- i:
+			// Send the timing via the channel in non-blocking mode
+		default:
+			// If the channel is full (which it will in case of timed mode) then
+			// just proceed
+			break
+	}
 	status := resp.StatusCode()
 
 	if status >= 100 && status < 200 {
@@ -82,6 +109,29 @@ func buildRequest(requests []preLoadedRequest, totalPremadeRequests int) (*fasth
 }
 
 func (worker *worker) finish() {
+	close(worker.timings)
+
+	first := true
+	sum, total := int64(0), 0
+
+	for timing := range worker.timings {
+		// The first request is associated with overhead
+		// in setting up the client so we ignore it's result
+		if first {
+			first = false
+			continue
+		}
+		if timing < worker.httpResult.minTime {
+			worker.httpResult.minTime = timing
+		} else if timing >= worker.httpResult.maxTime {
+			worker.httpResult.maxTime = timing
+		}
+		sum += int64(timing)
+		total++
+	}
+
+	worker.httpResult.timeSum = sum
+	worker.httpResult.totalSuccess = total
 	worker.httpResults <- worker.httpResult
 	worker.done <- true
 }

@@ -13,8 +13,10 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
- 
+
 package main
+
+import "math"
 
 // HTTPResult contains counters for the responses to the HTTP requests
 type HTTPResult struct {
@@ -24,6 +26,14 @@ type HTTPResult struct {
 	status3xxCount       int
 	status4xxCount       int
 	status5xxCount       int
+	maxTime              int
+	minTime              int
+	timeSum              int64
+	totalSuccess         int
+}
+
+func newHTTPResult() *HTTPResult {
+	return &HTTPResult{0, 0, 0, 0, 0, 0, 0, math.MaxInt64, 0, 0}
 }
 
 func (httpResult HTTPResult) total() int {

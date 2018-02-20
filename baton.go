@@ -13,7 +13,7 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
- 
+
 package main
 
 import (
@@ -81,7 +81,7 @@ func main() {
 		*wait,
 	}
 
-	baton := &Baton{configuration: configuration, result: Result{}}
+	baton := &Baton{configuration: configuration, result: *newResult()}
 
 	baton.run()
 	baton.result.printResults()
@@ -134,6 +134,12 @@ func (baton *Baton) run() {
 	log.Println("Finished sending the requests")
 	log.Println("Processing the results...")
 
+	processResults(baton, preparedRunConfiguration)
+}
+
+func processResults(baton *Baton, preparedRunConfiguration runConfiguration) {
+	timeSum := int64(0)
+	requestCount := 0
 	for a := 1; a <= baton.configuration.concurrency; a++ {
 		result := <-preparedRunConfiguration.results
 		baton.result.httpResult.connectionErrorCount += result.connectionErrorCount
@@ -142,10 +148,17 @@ func (baton *Baton) run() {
 		baton.result.httpResult.status3xxCount += result.status3xxCount
 		baton.result.httpResult.status4xxCount += result.status4xxCount
 		baton.result.httpResult.status5xxCount += result.status5xxCount
+		if result.minTime < baton.result.httpResult.minTime {
+			baton.result.minTime = result.minTime
+		}
+		if result.maxTime > baton.result.httpResult.maxTime {
+			baton.result.maxTime = result.maxTime
+		}
+		timeSum += result.timeSum
+		requestCount += result.totalSuccess
 	}
-
+	baton.result.averageTime = float32(timeSum) / float32(requestCount)
 	baton.result.totalRequests = baton.result.httpResult.total()
-
 	baton.result.requestsPerSecond = int(float64(baton.result.totalRequests)/baton.result.timeTaken.Seconds() + 0.5)
 }
 
