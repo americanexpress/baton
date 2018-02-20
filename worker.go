@@ -31,7 +31,6 @@ type worker struct {
 	httpResults chan<- HTTPResult
 	done        chan<- bool
 	timings     chan int
-	isBuffered  bool
 }
 
 type workable interface {
@@ -46,18 +45,16 @@ func (worker *worker) setCustomClient(client *fasthttp.Client) {
 
 func newWorker(requests <-chan bool, httpResults chan<- HTTPResult, done chan<- bool) *worker {
 	requestCount := len(requests)
-	isBuffered := false
 
 	// If this is running in timed mode we cannot predict the number of requests being
 	// sent, to allocate a large enough channel. As a compromise we fill in the
 	// buffered channel up to a fixed size and ignore the rest
 	if requestCount <= 1 {
 		requestCount = TimedBufferSize
-		isBuffered = true
 	}
 
 	timings := make(chan int, requestCount)
-	return &worker{*newHTTPResult(), &fasthttp.Client{}, requests, httpResults, done, timings, isBuffered}
+	return &worker{*newHTTPResult(), &fasthttp.Client{}, requests, httpResults, done, timings}
 }
 func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Response) bool {
 	timeNow := time.Now().UnixNano()
