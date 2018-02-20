@@ -4,9 +4,20 @@ Baton is a load testing tool written in Go. It currently supports GET, POST, PUT
 
 [![Build Status](https://travis-ci.org/americanexpress/baton.svg?branch=master)](https://travis-ci.org/americanexpress/baton)
 
-### Usage
+## Install Baton
+
+Installation of Baton with Go is as easy as running `go get`.
+
+```sh
+$ go get -u github.com/americanexpress/baton
+```
+
+Binary releases are [available](https://github.com/americanexpress/baton/releases).
+
+## Using Baton
 
 Baton currently supports the following options:
+
 ```
   -b string
     	Body (use instead of -f)
@@ -30,18 +41,19 @@ Baton currently supports the following options:
     	Read requests from a file
 ```
 
-A basic example which will use 10 workers to send 200,000 requests is as follows: 
+Below is A basic example which will use 10 workers to send 200,000 requests is as follows: 
 
-```bash
+```sh
 $ baton -u http://localhost:8080/test -c 10 -r 200000
 ```
 
 Instead of the number of requests, you can specify the time (in seconds) during which the
 requests should be sent. Baton will wait for all the responses to be received before reporting the results.
 
-##### Requests file
+### Requests file
 
 When specifying a file to load requests from (`-z filename`), the file should be of CSV format ([RFC-4180](https://tools.ietf.org/html/rfc4180))
+
 ```
 <method>,<url>,[<body>],[<header-key>:<header-value>, ...]
 ...
@@ -56,7 +68,7 @@ POST,http://localhost:8888,body,Accept: application/xml,Content-type: Secret
 GET,http://localhost:8888,,,
 ```
 
-##### Example Output:
+#### Example Output:
 
 ```
 ====================== Results ======================
@@ -74,41 +86,15 @@ Number of 5xx responses:                            0
 
 ```
 
-### Features which are on the horizon...
+## Features which are on the horizon...
 * Dynamic generation of data based on a template
 * Testing REST endpoints with dynamically generated keys
-
-### Installing Baton
-
-Installation with Go is as easy as running `go get`.
-
-```sh
-$ go get -u github.com/americanexpress/baton
-```
-
-Binary releases are [available](https://github.com/americanexpress/baton/releases).
-
-### Running Baton in docker
-
-To build the image run:
-```Bash
-$ docker build -t baton .
-```
-
-Alternatively, update the docker-compose.yml file to meet your needs and run:
-```bash
-$ docker-compose up
-```
-
-
 
 ## Dependency Management
 [Dep](https://github.com/golang/dep) is currently being utilized as the dependency manager for Baton.
 Details of how to use dep can be found on https://golang.github.io/dep/.
 
 Before updating any dependencies, ensure you have fully tested all functionality.
-
-
 
 ## Contributing
 We welcome Your interest in the American Express Open Source Community on Github.
