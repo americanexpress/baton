@@ -32,7 +32,7 @@ type HTTPTestHandler struct {
 	lastBodyReceived    string
 	lastMethodReceived  string
 	lastURIReceived     string
-	lastHeadersReceived fasthttp.RequestHeader
+	lastHeadersReceived *fasthttp.RequestHeader
 	lastTimestamp       int64
 }
 
@@ -42,7 +42,10 @@ func (h *HTTPTestHandler) HandleRequest(ctx *fasthttp.RequestCtx) {
 	h.lastBodyReceived = hex.EncodeToString(ctx.Request.Body())
 	h.lastMethodReceived = string(ctx.Request.Header.Method())
 	h.lastURIReceived = ctx.Request.URI().String()
-	h.lastHeadersReceived = ctx.Request.Header
+	newHeader := fasthttp.RequestHeader{}
+	ctx.Request.Header.CopyTo(&newHeader)
+	h.lastHeadersReceived = &newHeader
+
 }
 
 func (h *HTTPTestHandler) reset() {
@@ -59,7 +62,7 @@ var port = "8888"
 
 func startServer() *HTTPTestHandler {
 	if !serverRunning {
-		internalHandlerRef = &HTTPTestHandler{0, "", "", "", fasthttp.RequestHeader{}, 0}
+		internalHandlerRef = &HTTPTestHandler{0, "", "", "", &fasthttp.RequestHeader{}, 0}
 		serverRunning = true
 		go func() {
 			err := fasthttp.ListenAndServe(":"+port, internalHandlerRef.HandleRequest)
