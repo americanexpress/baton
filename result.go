@@ -27,13 +27,14 @@ type Result struct {
 	totalRequests     int
 	timeTaken         time.Duration
 	requestsPerSecond int
+	hasStats          bool
 	averageTime       float32
 	minTime           int
 	maxTime           int
 }
 
 func newResult() *Result {
-	return &Result{*newHTTPResult(), 0, 0, 0, 0, 0, 0}
+	return &Result{*newHTTPResult(), 0, 0, 0, false, 0, 0, 0}
 }
 
 func (result *Result) printResults() {
@@ -43,9 +44,11 @@ func (result *Result) printResults() {
 	fmt.Printf("Total requests:                            %10d\n", result.totalRequests)
 	fmt.Printf("Time taken to complete requests:      %15s\n", result.timeTaken.String())
 	fmt.Printf("Requests per second:                       %10d\n", result.requestsPerSecond)
-	fmt.Printf("Max response time (ms):                    %10d\n", result.maxTime)
-	fmt.Printf("Min response time (ms):                    %10d\n", result.minTime)
-	fmt.Printf("Avg response time (ms):                        %6.2f\n", result.averageTime)
+	if result.hasStats {
+		fmt.Printf("Max response time (ms):                    %10d\n", result.maxTime)
+		fmt.Printf("Min response time (ms):                    %10d\n", result.minTime)
+		fmt.Printf("Avg response time (ms):                        %6.2f\n", result.averageTime)
+	}
 	fmt.Printf("===================== Breakdown =====================\n")
 	fmt.Printf("Number of connection errors:               %10d\n", result.httpResult.connectionErrorCount)
 	fmt.Printf("Number of 1xx responses:                   %10d\n", result.httpResult.status1xxCount)

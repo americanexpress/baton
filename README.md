@@ -94,7 +94,7 @@ Number of 5xx responses:                            0
 * Testing REST endpoints with dynamically generated keys
 
 ## Caveats
-* The `min`,`max`,`avg` stats are only accurate when a request count is specified. When in timed mode only the first `100,000` requests are tracked
+* Statistics are only provided when a fixed number of requests is provided (instead of providing a duration).
 
 ## Dependency Management
 [Dep](https://github.com/golang/dep) is currently being utilized as the dependency manager for Baton.

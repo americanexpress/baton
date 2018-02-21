@@ -157,6 +157,7 @@ func processResults(baton *Baton, preparedRunConfiguration runConfiguration) {
 		timeSum += result.timeSum
 		requestCount += result.totalSuccess
 	}
+	baton.result.hasStats = baton.configuration.duration == 0
 	baton.result.averageTime = float32(timeSum) / float32(requestCount)
 	baton.result.totalRequests = baton.result.httpResult.total()
 	baton.result.requestsPerSecond = int(float64(baton.result.totalRequests)/baton.result.timeTaken.Seconds() + 0.5)

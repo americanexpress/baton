@@ -22,15 +22,12 @@ import (
 	"time"
 )
 
-const TimedBufferSize = 100000
-
 type worker struct {
 	httpResult  HTTPResult
 	client      *fasthttp.Client
 	requests    <-chan bool
 	httpResults chan<- HTTPResult
 	done        chan<- bool
-	timings     chan int
 }
 
 type workable interface {
@@ -44,39 +41,20 @@ func (worker *worker) setCustomClient(client *fasthttp.Client) {
 }
 
 func newWorker(requests <-chan bool, httpResults chan<- HTTPResult, done chan<- bool) *worker {
-	requestCount := len(requests)
-
-	// If this is running in timed mode we cannot predict the number of requests being
-	// sent, to allocate a large enough channel. As a compromise we fill in the
-	// buffered channel up to a fixed size and ignore the rest
-	if requestCount <= 1 {
-		requestCount = TimedBufferSize
-	}
-
-	timings := make(chan int, requestCount)
-	return &worker{*newHTTPResult(), &fasthttp.Client{}, requests, httpResults, done, timings}
+	return &worker{*newHTTPResult(), &fasthttp.Client{}, requests, httpResults, done}
 }
+
 func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Response) bool {
-	timeNow := time.Now().UnixNano()
 	if err := worker.client.Do(req, resp); err != nil {
 		worker.httpResult.connectionErrorCount++
 		return true
 	}
-	timeAfter := time.Now().UnixNano()
-
-	i := int(timeAfter - timeNow)
-	// The select is needed to avoid blocking the thread
-	// if the channel is full
-	select {
-		case worker.timings <- i:
-			// Send the timing via the channel in non-blocking mode
-		default:
-			// If the channel is full (which it will in case of timed mode) then
-			// just proceed
-			break
-	}
 	status := resp.StatusCode()
 
+	worker.recordCount(status)
+	return false
+}
+func (worker *worker) recordCount(status int) {
 	if status >= 100 && status < 200 {
 		worker.httpResult.status1xxCount++
 	} else if status >= 200 && status < 300 {
@@ -88,6 +66,21 @@ func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Respo
 	} else if status >= 500 && status < 600 {
 		worker.httpResult.status5xxCount++
 	}
+}
+func (worker *worker) performRequestWithStats(req *fasthttp.Request, resp *fasthttp.Response, timings chan int) bool {
+	timeNow := time.Now().UnixNano()
+	if err := worker.client.Do(req, resp); err != nil {
+		worker.httpResult.connectionErrorCount++
+		return true
+	}
+	timeAfter := time.Now().UnixNano()
+
+	i := int(timeAfter - timeNow)
+	// Record the timing into a channel
+	timings <- i
+
+	status := resp.StatusCode()
+	worker.recordCount(status)
 
 	return false
 }
@@ -108,18 +101,17 @@ func buildRequest(requests []preLoadedRequest, totalPremadeRequests int) (*fasth
 }
 
 func (worker *worker) finish() {
-	worker.collectStatistics()
 	worker.httpResults <- worker.httpResult
 	worker.done <- true
 }
 
-func (worker *worker) collectStatistics() {
-	close(worker.timings)
+func (worker *worker) collectStatistics(timings chan int) {
+	close(timings)
 
 	first := true
 	sum, total := int64(0), 0
 
-	for timing := range worker.timings {
+	for timing := range timings {
 		timing = timing / 1000
 		// The first request is associated with overhead
 		// in setting up the client so we ignore it's result

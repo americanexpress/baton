@@ -13,7 +13,7 @@
  * or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
- 
+
 package main
 
 import (
@@ -23,11 +23,13 @@ import (
 // CountWorker implements a worker which sends a fixed number of requests
 type countWorker struct {
 	*worker
+	timings chan int
 }
 
 func newCountWorker(requests <-chan bool, results chan<- HTTPResult, done chan<- bool) *countWorker {
 	worker := newWorker(requests, results, done)
-	return &countWorker{worker}
+	timings := make(chan int, len(requests))
+	return &countWorker{worker, timings}
 }
 
 func (worker *countWorker) sendRequest(request preLoadedRequest) {
@@ -38,9 +40,10 @@ func (worker *countWorker) sendRequest(request preLoadedRequest) {
 	resp := fasthttp.AcquireResponse()
 
 	for range worker.requests {
-		worker.performRequest(req, resp)
+		worker.performRequestWithStats(req, resp, worker.timings)
 	}
 
+	worker.collectStatistics(worker.timings)
 	worker.finish()
 }
 func (worker *countWorker) sendRequests(requests []preLoadedRequest) {
@@ -48,8 +51,9 @@ func (worker *countWorker) sendRequests(requests []preLoadedRequest) {
 
 	for range worker.requests {
 		req, resp := buildRequest(requests, totalPremadeRequests)
-		worker.performRequest(req, resp)
+		worker.performRequestWithStats(req, resp, worker.timings)
 	}
 
+	worker.collectStatistics(worker.timings)
 	worker.finish()
 }
