@@ -65,6 +65,8 @@ func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Respo
 	timeAfter := time.Now().UnixNano()
 
 	i := int((timeAfter - timeNow) / 1000)
+	// The select is needed to avoid blocking the thread
+	// if the channel is full
 	select {
 		case worker.timings <- i:
 			// Send the timing via the channel in non-blocking mode
@@ -106,6 +108,12 @@ func buildRequest(requests []preLoadedRequest, totalPremadeRequests int) (*fasth
 }
 
 func (worker *worker) finish() {
+	worker.collectStatistics()
+	worker.httpResults <- worker.httpResult
+	worker.done <- true
+}
+
+func (worker *worker) collectStatistics() {
 	close(worker.timings)
 
 	first := true
@@ -129,6 +137,4 @@ func (worker *worker) finish() {
 
 	worker.httpResult.timeSum = sum
 	worker.httpResult.totalSuccess = total
-	worker.httpResults <- worker.httpResult
-	worker.done <- true
 }
