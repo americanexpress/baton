@@ -64,7 +64,7 @@ func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Respo
 	}
 	timeAfter := time.Now().UnixNano()
 
-	i := int((timeAfter - timeNow) / 1000)
+	i := int(timeAfter - timeNow)
 	// The select is needed to avoid blocking the thread
 	// if the channel is full
 	select {
@@ -120,6 +120,7 @@ func (worker *worker) collectStatistics() {
 	sum, total := int64(0), 0
 
 	for timing := range worker.timings {
+		timing = timing / 1000
 		// The first request is associated with overhead
 		// in setting up the client so we ignore it's result
 		if first {
