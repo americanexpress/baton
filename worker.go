@@ -54,6 +54,7 @@ func (worker *worker) performRequest(req *fasthttp.Request, resp *fasthttp.Respo
 	worker.recordCount(status)
 	return false
 }
+
 func (worker *worker) recordCount(status int) {
 	if status >= 100 && status < 200 {
 		worker.httpResult.status1xxCount++
@@ -67,6 +68,7 @@ func (worker *worker) recordCount(status int) {
 		worker.httpResult.status5xxCount++
 	}
 }
+
 func (worker *worker) performRequestWithStats(req *fasthttp.Request, resp *fasthttp.Response, timings chan int) bool {
 	timeNow := time.Now().UnixNano()
 	if err := worker.client.Do(req, resp); err != nil {
