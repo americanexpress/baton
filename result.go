@@ -58,12 +58,14 @@ func (result *Result) printResults() {
 	fmt.Printf("Number of 3xx responses:                   %10d\n", result.httpResult.status3xxCount)
 	fmt.Printf("Number of 4xx responses:                   %10d\n", result.httpResult.status4xxCount)
 	fmt.Printf("Number of 5xx responses:                   %10d\n", result.httpResult.status5xxCount)
-	fmt.Println()
-	fmt.Printf("========= Percentage of responses received within a certain time (ms)======\n")
-	fmt.Println()
 
 	for i := 0; i < len(result.httpResult.responseTimesPercent); i++ {
 		if result.httpResult.responseTimesPercent[i][0] > 0 {
+			if i == 0 {
+				fmt.Println()
+				fmt.Printf("========= Percentage of responses received within a certain time (ms)======\n")
+				fmt.Println()
+			}
 			fmt.Printf("%10d%% : %d ms\n", result.httpResult.responseTimesPercent[i][2], result.httpResult.responseTimesPercent[i][0])
 		}
 	}
