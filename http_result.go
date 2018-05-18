@@ -30,10 +30,12 @@ type HTTPResult struct {
 	minTime              int
 	timeSum              int64
 	totalSuccess         int
+	responseTimes        []int
+	responseTimesPercent [][3]int
 }
 
 func newHTTPResult() *HTTPResult {
-	return &HTTPResult{0, 0, 0, 0, 0, 0, 0, math.MaxInt64, 0, 0}
+	return &HTTPResult{0, 0, 0, 0, 0, 0, 0, math.MaxInt64, 0, 0, make([]int, 0), make([][3]int, 0)}
 }
 
 func (httpResult HTTPResult) total() int {

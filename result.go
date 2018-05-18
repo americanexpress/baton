@@ -39,8 +39,8 @@ func newResult() *Result {
 
 func (result *Result) printResults() {
 	fmt.Println()
+	fmt.Printf("=========================== Results ========================================\n")
 	fmt.Println()
-	fmt.Printf("====================== Results ======================\n")
 	fmt.Printf("Total requests:                            %10d\n", result.totalRequests)
 	fmt.Printf("Time taken to complete requests:      %15s\n", result.timeTaken.String())
 	fmt.Printf("Requests per second:                       %10d\n", result.requestsPerSecond)
@@ -49,12 +49,26 @@ func (result *Result) printResults() {
 		fmt.Printf("Min response time (ms):                    %10d\n", result.minTime)
 		fmt.Printf("Avg response time (ms):                        %6.2f\n", result.averageTime)
 	}
-	fmt.Printf("===================== Breakdown =====================\n")
+	fmt.Println()
+	fmt.Printf("========= Percentage of responses by status code ==========================\n")
+	fmt.Println()
 	fmt.Printf("Number of connection errors:               %10d\n", result.httpResult.connectionErrorCount)
 	fmt.Printf("Number of 1xx responses:                   %10d\n", result.httpResult.status1xxCount)
 	fmt.Printf("Number of 2xx responses:                   %10d\n", result.httpResult.status2xxCount)
 	fmt.Printf("Number of 3xx responses:                   %10d\n", result.httpResult.status3xxCount)
 	fmt.Printf("Number of 4xx responses:                   %10d\n", result.httpResult.status4xxCount)
 	fmt.Printf("Number of 5xx responses:                   %10d\n", result.httpResult.status5xxCount)
-	fmt.Printf("=====================================================\n")
+	fmt.Println()
+	fmt.Printf("========= Percentage of responses received within a certain time (ms)======\n")
+	fmt.Println()
+
+	for i := 0; i < len(result.httpResult.responseTimesPercent); i++ {
+		if result.httpResult.responseTimesPercent[i][0] > 0 {
+			fmt.Printf("%10d%% : %d ms\n", result.httpResult.responseTimesPercent[i][2], result.httpResult.responseTimesPercent[i][0])
+		}
+	}
+	fmt.Println()
+
+	fmt.Printf("===========================================================================\n")
+
 }

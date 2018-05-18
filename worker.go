@@ -114,18 +114,24 @@ func (worker *worker) collectStatistics(timings chan int) {
 	sum, total := int64(0), 0
 
 	for timing := range timings {
-		timing = timing / 1000
+		//Nano to milli
+		timing = timing / 1000000
 		// The first request is associated with overhead
 		// in setting up the client so we ignore it's result
 		if first {
 			first = false
 			continue
 		}
+
 		if timing < worker.httpResult.minTime {
 			worker.httpResult.minTime = timing
 		} else if timing >= worker.httpResult.maxTime {
 			worker.httpResult.maxTime = timing
 		}
+
+		//save all response times to compute results later
+		worker.httpResult.responseTimes = append(worker.httpResult.responseTimes, timing)
+
 		sum += int64(timing)
 		total++
 	}

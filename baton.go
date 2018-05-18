@@ -23,6 +23,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"log"
+	"math"
 	"time"
 )
 
@@ -148,12 +149,11 @@ func processResults(baton *Baton, preparedRunConfiguration runConfiguration) {
 		baton.result.httpResult.status3xxCount += result.status3xxCount
 		baton.result.httpResult.status4xxCount += result.status4xxCount
 		baton.result.httpResult.status5xxCount += result.status5xxCount
-		if result.minTime < baton.result.httpResult.minTime {
-			baton.result.minTime = result.minTime
+
+		for b := 0; b < len(result.responseTimes); b++ {
+			baton.result.httpResult.responseTimes = append(baton.result.httpResult.responseTimes, result.responseTimes[b])
 		}
-		if result.maxTime > baton.result.httpResult.maxTime {
-			baton.result.maxTime = result.maxTime
-		}
+
 		timeSum += result.timeSum
 		requestCount += result.totalSuccess
 	}
@@ -161,6 +161,46 @@ func processResults(baton *Baton, preparedRunConfiguration runConfiguration) {
 	baton.result.averageTime = float32(timeSum) / float32(requestCount)
 	baton.result.totalRequests = baton.result.httpResult.total()
 	baton.result.requestsPerSecond = int(float64(baton.result.totalRequests)/baton.result.timeTaken.Seconds() + 0.5)
+
+	//Find new min and max
+	min := math.MaxInt64
+	max := 0
+	for b := 0; b < len(baton.result.httpResult.responseTimes); b++ {
+		if baton.result.httpResult.responseTimes[b] < min {
+			min = baton.result.httpResult.responseTimes[b]
+		}
+		if baton.result.httpResult.responseTimes[b] > max {
+			max = baton.result.httpResult.responseTimes[b]
+		}
+	}
+	baton.result.minTime = min
+	baton.result.maxTime = max
+
+	//Find brackets
+	var numOfBrackets = 10
+	rtCounts := make([][3]int, numOfBrackets)
+	bs := (max - min) / numOfBrackets
+	if bs < 1 {
+		bs = 1
+	}
+	for i := 0; i < numOfBrackets; i++ {
+		if min+(bs*(i+1)) < max {
+			rtCounts[i][0] = min + (bs * (i + 1))
+		}
+	}
+	rtCounts[numOfBrackets-1][0] = max
+
+	for b := 0; b < len(baton.result.httpResult.responseTimes); b++ {
+		for i := 0; i < numOfBrackets; i++ {
+			if baton.result.httpResult.responseTimes[b] <= rtCounts[i][0] {
+				rtCounts[i][1] += 1
+				rtCounts[i][2] = int((float64(rtCounts[i][1]) / float64(len(baton.result.httpResult.responseTimes))) * 100)
+			}
+		}
+	}
+
+	baton.result.httpResult.responseTimesPercent = rtCounts
+
 }
 
 func configureLogging(suppressOutput bool) {
