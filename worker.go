@@ -97,7 +97,11 @@ func buildRequest(requests []preLoadedRequest, totalPremadeRequests int) (*fasth
 	req.Header.SetMethod(currentReq.method)
 	req.SetBodyString(currentReq.body)
 	for i := 0; i < len(currentReq.headers); i++ {
-		req.Header.Add(currentReq.headers[i][0], currentReq.headers[i][1])
+		if strings.EqualFold(currentReq.headers[i][0], "Content-type") {
+			req.Header.SetContentType(currentReq.headers[i][1])
+		} else {
+			req.Header.Add(currentReq.headers[i][0], currentReq.headers[i][1])
+		}
 	}
 	return req, resp
 }
