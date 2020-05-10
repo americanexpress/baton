@@ -19,6 +19,7 @@ package main
 import (
 	"github.com/valyala/fasthttp"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -97,6 +98,10 @@ func buildRequest(requests []preLoadedRequest, totalPremadeRequests int) (*fasth
 	req.Header.SetMethod(currentReq.method)
 	req.SetBodyString(currentReq.body)
 	for i := 0; i < len(currentReq.headers); i++ {
+		if strings.EqualFold(currentReq.headers[i][0], "Content-type") {
+			req.Header.SetContentType(currentReq.headers[i][1])
+			continue
+		}
 		req.Header.Add(currentReq.headers[i][0], currentReq.headers[i][1])
 	}
 	return req, resp
